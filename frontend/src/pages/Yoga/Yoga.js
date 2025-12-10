@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from 'react'
 import backend from '@tensorflow/tfjs-backend-webgl'
 import Webcam from 'react-webcam'
 import { count } from '../../utils/music'; 
+import { detectPoseOnServer, checkServerHealth, imageDataToBase64 } from '../../services/serverPoseService';
  
 import Instructions from '../../components/Instrctions/Instructions';
 
@@ -40,6 +41,9 @@ function Yoga() {
   const [bestPerform, setBestPerform] = useState(0)
   const [currentPose, setCurrentPose] = useState('Tree')
   const [isStartPose, setIsStartPose] = useState(false)
+  const [detectionStatus, setDetectionStatus] = useState('Waiting...')
+  const [useServer, setUseServer] = useState(true) // Server mode by default
+  const [serverAvailable, setServerAvailable] = useState(false)
 
   
   useEffect(() => {
@@ -118,14 +122,38 @@ function Yoga() {
   }
 
   const runMovenet = async () => {
-    const detectorConfig = {modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER};
-    const detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, detectorConfig);
-    const poseClassifier = await tf.loadLayersModel('https://models.s3.jp-tok.cloud-object-storage.appdomain.cloud/model.json')
-    const countAudio = new Audio(count)
-    countAudio.loop = true
-    interval = setInterval(() => { 
-        detectPose(detector, poseClassifier, countAudio)
-    }, 100)
+    try {
+      console.log('Initializing TensorFlow.js...')
+      await tf.ready()
+      console.log('TensorFlow.js ready, backend:', tf.getBackend())
+      
+      // Use LIGHTNING model for better mobile performance
+      const detectorConfig = {
+        modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+        enableSmoothing: true
+      };
+      console.log('Loading MoveNet detector (LIGHTNING for mobile)...')
+      const detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, detectorConfig);
+      console.log('MoveNet loaded successfully')
+      
+      console.log('Loading pose classifier...')
+      const poseClassifier = await tf.loadLayersModel('https://models.s3.jp-tok.cloud-object-storage.appdomain.cloud/model.json')
+      console.log('Pose classifier loaded successfully')
+      
+      const countAudio = new Audio(count)
+      countAudio.loop = true
+      
+      // Wait for webcam to be fully ready
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      console.log('Starting pose detection...')
+      
+      interval = setInterval(() => { 
+          detectPose(detector, poseClassifier, countAudio)
+      }, 400)  // Increased to 400ms for smooth mobile performance (~2.5 FPS)
+    } catch (error) {
+      console.error('Error initializing pose detection:', error)
+      alert('Error loading AI models. Please check your internet connection and try again.')
+    }
   }
 
   const detectPose = async (detector, poseClassifier, countAudio) => {
@@ -136,15 +164,34 @@ function Yoga() {
     ) {
       let notDetected = 0 
       const video = webcamRef.current.video
+      const videoWidth = video.videoWidth
+      const videoHeight = video.videoHeight
+      
+      // Set canvas size to match video
+      canvasRef.current.width = videoWidth
+      canvasRef.current.height = videoHeight
+      
       const pose = await detector.estimatePoses(video)
       const ctx = canvasRef.current.getContext('2d')
       ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      
+      // Check if pose was detected
+      if (!pose || pose.length === 0 || !pose[0] || !pose[0].keypoints) {
+        console.log('No pose detected in frame')
+        setDetectionStatus('No pose detected - move into frame')
+        return
+      }
+      
+      console.log('Pose detected! Keypoints:', pose[0].keypoints.length)
+      setDetectionStatus(`✓ Pose detected! ${pose[0].keypoints.length} keypoints`)
+      
       try {
         const keypoints = pose[0].keypoints 
         let input = keypoints.map((keypoint) => {
-          if(keypoint.score > 0.4) {
+          if(keypoint.score > 0.2) {  // Lowered from 0.4 to 0.2 for better mobile detection
             if(!(keypoint.name === 'left_eye' || keypoint.name === 'right_eye')) {
               drawPoint(ctx, keypoint.x, keypoint.y, 8, 'rgb(255,255,255)')
+              console.log('Drawing point:', keypoint.name, 'at', keypoint.x, keypoint.y)
               let connections = keypointConnections[keypoint.name]
               try {
                 connections.forEach((connection) => {
@@ -155,7 +202,7 @@ function Yoga() {
                   , skeletonColor)
                 })
               } catch(err) {
-
+                console.error('Error drawing segment:', err)
               }
               
             }
@@ -199,14 +246,99 @@ function Yoga() {
   }
 
   function startYoga(){
-    setIsStartPose(true) 
-    runMovenet()
+    setIsStartPose(true)
+    if (useServer) {
+      // Check server availability first
+      checkServerHealth().then(available => {
+        setServerAvailable(available);
+        if (available) {
+          console.log('Using server-based detection');
+          runServerDetection();
+        } else {
+          alert('Server not available! Switching to local detection...');
+          setUseServer(false);
+          runMovenet();
+        }
+      });
+    } else {
+      runMovenet();
+    }
   } 
 
   function stopPose() {
     setIsStartPose(false)
     clearInterval(interval)
   }
+
+  const runServerDetection = async () => {
+    const countAudio = new Audio(count);
+    countAudio.loop = true;
+    
+    // Create a hidden canvas for capturing frames
+    const captureCanvas = document.createElement('canvas');
+    
+    interval = setInterval(async () => {
+      if (
+        typeof webcamRef.current !== "undefined" &&
+        webcamRef.current !== null &&
+        webcamRef.current.video.readyState === 4
+      ) {
+        const video = webcamRef.current.video;
+        const videoWidth = video.videoWidth;
+        const videoHeight = video.videoHeight;
+        
+        // Update canvas size
+        canvasRef.current.width = videoWidth;
+        canvasRef.current.height = videoHeight;
+        
+        // Convert frame to base64
+        const base64Image = imageDataToBase64(captureCanvas, video);
+        
+        // Send to server
+        const keypoints = await detectPoseOnServer(base64Image);
+        
+        if (!keypoints || keypoints.length === 0) {
+          setDetectionStatus('No pose detected - move into frame');
+          const ctx = canvasRef.current.getContext('2d');
+          ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+          return;
+        }
+        
+        setDetectionStatus(`✓ Server detected! ${keypoints.length} keypoints`);
+        
+        // Draw keypoints on canvas
+        const ctx = canvasRef.current.getContext('2d');
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        
+        // Convert normalized coordinates to pixel coordinates
+        keypoints.forEach((keypoint, i) => {
+          if (keypoint.score > 0.2 && keypoint.name !== 'left_eye' && keypoint.name !== 'right_eye') {
+            const x = keypoint.x * videoWidth;
+            const y = keypoint.y * videoHeight;
+            drawPoint(ctx, x, y, 8, 'rgb(255,255,255)');
+          }
+        });
+        
+        // Draw connections
+        const connections = keypointConnections;
+        keypoints.forEach((keypoint, i) => {
+          if (keypoint.score > 0.2 && connections[keypoint.name]) {
+            const x1 = keypoint.x * videoWidth;
+            const y1 = keypoint.y * videoHeight;
+            
+            connections[keypoint.name].forEach(targetName => {
+              const targetKeypoint = keypoints.find(kp => kp.name === targetName);
+              if (targetKeypoint && targetKeypoint.score > 0.2) {
+                const x2 = targetKeypoint.x * videoWidth;
+                const y2 = targetKeypoint.y * videoHeight;
+                drawSegment(ctx, [x1, y1], [x2, y2], skeletonColor);
+              }
+            });
+          }
+        });
+      }
+    }, 500); // 500ms for server round-trip
+  };
 
     
 
@@ -221,29 +353,30 @@ function Yoga() {
               <h4>Best: {bestPerform} s</h4>
             </div>
           </div>
-        <div>
+        <div style={{ textAlign: 'center', color: 'white', margin: '10px 0', fontSize: '16px', fontWeight: 'bold' }}>
+          {detectionStatus}
+        </div>
+        <div style={{ position: 'relative', display: 'inline-block' }}>
           
           <Webcam 
-          width='640px'
-          height='480px'
           id="webcam"
           ref={webcamRef}
           style={{
-            position: 'absolute',
-            left: 120,
-            top: 100,
-            padding: '0px',
+            display: 'block',
+            margin: '0 auto',
+            width: '100%',
+            maxWidth: '640px',
           }}
         />
           <canvas
             ref={canvasRef}
             id="my-canvas"
-            width='640px'
-            height='480px'
             style={{
               position: 'absolute',
-              left: 120,
-              top: 100,
+              left: 0,
+              top: 0,
+              width: '100%',
+              height: '100%',
               zIndex: 1
             }}
           >
@@ -277,6 +410,17 @@ function Yoga() {
       <Instructions
           currentPose={currentPose}
         />
+      <div style={{ margin: '20px 0', textAlign: 'center' }}>
+        <label style={{ color: 'white', fontSize: '16px', cursor: 'pointer' }}>
+          <input 
+            type="checkbox" 
+            checked={useServer} 
+            onChange={(e) => setUseServer(e.target.checked)}
+            style={{ marginRight: '10px', transform: 'scale(1.5)' }}
+          />
+          Use Server Detection (More Accurate)
+        </label>
+      </div>
       <button
           onClick={startYoga}
           className="secondary-btn"    

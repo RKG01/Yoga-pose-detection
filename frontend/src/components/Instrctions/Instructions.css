@@ -24,3 +24,28 @@
     aspect-ratio: 1;
     border-radius: 15px;
 }
+
+@media (max-width: 768px) {
+    .instructions-container {
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+    }
+    
+    .instructions-list {
+        width: 90%;
+        margin-top: 20px;
+        padding: 15px;
+    }
+    
+    .instruction {
+        font-size: 14px;
+        margin: 8px;
+    }
+    
+    .pose-demo-img {
+        width: 90%;
+        max-width: 300px;
+        height: auto;
+    }
+}

@@ -127,3 +127,72 @@
     .pose-img { position: relative; margin: 20px auto; width: 80%; top: 0; right: 0; }
     .starting-contdown { width: 120px; height: 120px; }
 }
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+    .yoga-container {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .pose-img {
+        position: static !important;
+        width: 160px !important;
+        margin: 10px auto !important;
+        display: block;
+        right: auto !important;
+        top: auto !important;
+    }
+    
+    #webcam,
+    #my-canvas {
+        width: 90vw !important;
+        max-width: 90vw !important;
+        height: auto !important;
+        margin: 10px auto !important;
+        display: block !important;
+    }
+    
+    .secondary-btn {
+        padding: 10px 20px;
+        margin: 10px 8px;
+        font-size: 14px;
+        display: inline-block;
+    }
+    
+    .performance-container {
+        position: static !important;
+        flex-direction: row;
+        gap: 15px;
+        left: auto !important;
+        bottom: auto !important;
+        width: 100%;
+        justify-content: center;
+        margin: 20px auto;
+        padding: 0;
+    }
+    
+    .pose-performance {
+        padding: 8px 15px;
+        font-size: 13px;
+        text-align: center;
+    }
+    
+    .pose-performance h4 {
+        font-size: 15px;
+        margin: 5px 0;
+    }
+    
+    .starting-contdown {
+        width: 100px;
+        height: 100px;
+        margin: 20px auto;
+        border-width: 6px;
+    }
+    
+    .starting-contdown h1 {
+        font-size: 1.8rem;
+    }
+}
