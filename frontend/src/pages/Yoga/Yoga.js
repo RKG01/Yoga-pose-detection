@@ -1,7 +1,6 @@
 import * as poseDetection from '@tensorflow-models/pose-detection';
 import * as tf from '@tensorflow/tfjs';
 import React, { useRef, useState, useEffect } from 'react'
-import backend from '@tensorflow/tfjs-backend-webgl'
 import Webcam from 'react-webcam'
 import { count } from '../../utils/music'; 
 import { detectPoseOnServer, checkServerHealth, imageDataToBase64 } from '../../services/serverPoseService';
@@ -43,7 +42,6 @@ function Yoga() {
   const [isStartPose, setIsStartPose] = useState(false)
   const [detectionStatus, setDetectionStatus] = useState('Waiting...')
   const [useServer, setUseServer] = useState(true) // Server mode by default
-  const [serverAvailable, setServerAvailable] = useState(false)
   const [confidence, setConfidence] = useState(0) // Pose confidence percentage
   const [isLoading, setIsLoading] = useState(false) // Server processing indicator
   const [facingMode, setFacingMode] = useState('user') // 'user' or 'environment'
@@ -58,7 +56,7 @@ function Yoga() {
     if((currentTime - startingTime)/1000 > bestPerform) {
       setBestPerform(timeDiff)
     }
-  }, [currentTime])
+  }, [currentTime, startingTime, bestPerform])
 
 
   useEffect(() => {
@@ -269,7 +267,6 @@ function Yoga() {
     if (useServer) {
       // Check server availability first
       checkServerHealth().then(available => {
-        setServerAvailable(available);
         if (available) {
           console.log('Using server-based detection');
           setErrorMessage('');
@@ -515,19 +512,17 @@ function Yoga() {
           </div>
         )}
 
-        {/* Loading Indicator */}
-        {isLoading && (
-          <div style={{ textAlign: 'center', color: 'white', fontSize: '14px', margin: '5px 0' }}>
-            <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⏳</span> Processing...
-          </div>
-        )}
+        {/* Processing indicator - always visible (non-interactive) */}
+        <div style={{ textAlign: 'center', color: 'white', fontSize: '14px', margin: '5px 0', pointerEvents: 'none' }}>
+          <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block', marginRight: 8 }}>⏳</span>
+          Processing...
+        </div>
 
         <div style={{ textAlign: 'center', color: 'white', margin: '10px 0', fontSize: '16px', fontWeight: 'bold' }}>
           {detectionStatus}
         </div>
         
         <div style={{ position: 'relative', display: 'inline-block' }}>
-          
           <Webcam 
           id="webcam"
           ref={webcamRef}
@@ -548,21 +543,22 @@ function Yoga() {
               top: 0,
               width: '100%',
               height: '100%',
-              zIndex: 1
+              zIndex: 1,
+              pointerEvents: 'none'
             }}
           >
           </canvas>
-        <div>
-            <img 
-              src={poseImages[currentPose]}
-              className="pose-img"
-              alt={currentPose + " pose"}
-            />
-          </div>
-         
         </div>
         
-        <div style={{ textAlign: 'center', margin: '15px 0' }}>
+        <div style={{ pointerEvents: 'none', position: 'absolute', right: '50px', top: '100px', zIndex: 0 }}>
+          <img 
+            src={poseImages[currentPose]}
+            className="pose-img"
+            alt={currentPose + " pose"}
+          />
+        </div>
+        
+        <div style={{ textAlign: 'center', margin: '15px 0', position: 'relative', zIndex: 100 }}>
           <button
             onClick={toggleCamera}
             style={{
@@ -573,14 +569,20 @@ function Yoga() {
               border: 'none',
               borderRadius: '5px',
               fontSize: '16px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              position: 'relative',
+              zIndex: 100
             }}
           >
             🔄 Flip Camera
           </button>
           <button
             onClick={stopPose}
-            className="secondary-btn"    
+            className="secondary-btn"
+            style={{
+              position: 'relative',
+              zIndex: 100
+            }}
           >Stop Pose</button>
         </div>
       </div>
