@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 
 import yoga1 from "../../utils/images/yoga1.png";
@@ -12,6 +13,7 @@ import yoga6 from "../../utils/images/yoga6.png";
 import "./Home.css";
 
 export default function Home() {
+  const { user, logout } = useAuth();
   const photos = [yoga1, yoga2, yoga3, yoga4, yoga5, yoga6];
 
   const yogaTexts = [
@@ -36,9 +38,18 @@ export default function Home() {
       {/* Header */}
       <header className="home-header">
         <h1 className="home-heading">PoseMinds</h1>
-        <Link to="/about">
-          <button className="btn btn-secondary">About</button>
-        </Link>
+        <div className="header-buttons">
+          <span className="welcome-text">Welcome, {user?.username || user?.profile?.firstName || 'Yogi'}!</span>
+          <Link to="/about">
+            <button className="btn btn-secondary">About</button>
+          </Link>
+          <Link to="/settings">
+            <button className="btn btn-secondary">⚙️</button>
+          </Link>
+          <button onClick={logout} className="btn btn-secondary logout-btn">
+            🚪 Logout
+          </button>
+        </div>
       </header>
 
       {/* Main */}
@@ -47,10 +58,16 @@ export default function Home() {
 
         <div className="btn-section">
           <Link to="/yoga">
-            <button className="btn start-btn">Let's Start</button>
+            <button className="btn start-btn">🧘‍♀️ Quick Practice</button>
+          </Link>
+          <Link to="/flows">
+            <button className="btn start-btn">🔄 Yoga Flows</button>
+          </Link>
+          <Link to="/progress">
+            <button className="btn start-btn">📊 My Progress</button>
           </Link>
           <Link to="/tutorials">
-            <button className="btn start-btn">Tutorials</button>
+            <button className="btn start-btn">📚 Tutorials</button>
           </Link>
         </div>
 

@@ -65,10 +65,11 @@
 
 /* Pose Image */
 .pose-img {
-    position: absolute;
-    right: 50px;
-    top: 100px;
-    width: 400px;
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 280px;
     aspect-ratio: 1;
     border-radius: 20px;
     box-shadow: 0 8px 25px rgba(0,0,0,0.4);
@@ -110,6 +111,16 @@
     transform: translateY(-3px);
 }
 
+/* Video Container */
+.video-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    max-width: calc(100vw - 320px); /* Leave space for pose image */
+}
+
 /* Webcam & Canvas Flip */
 #webcam,
 #my-canvas {
@@ -117,16 +128,35 @@
     border-radius: 15px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.3);
     transition: all 0.3s ease;
+    max-width: 100%;
+    height: auto;
 }
 
 /* Smooth responsive adjustments */
 @media (max-width: 1200px) {
-    .pose-img { width: 300px; right: 30px; top: 120px; }
+    .pose-img { 
+        width: 240px; 
+        right: 15px; 
+    }
+    .video-container {
+        max-width: calc(100vw - 260px);
+    }
 }
 
 @media (max-width: 900px) {
     .performance-container { flex-direction: column; left: 20px; bottom: 20px; }
-    .pose-img { position: relative; margin: 20px auto; width: 80%; top: 0; right: 0; }
+    .pose-img { 
+        position: relative !important; 
+        margin: 20px auto; 
+        width: 200px !important; 
+        top: auto !important; 
+        right: auto !important; 
+        transform: none !important;
+        display: block;
+    }
+    .video-container {
+        max-width: 95vw;
+    }
     .starting-contdown { width: 120px; height: 120px; }
 }
 
@@ -139,6 +169,11 @@
         justify-content: center;
     }
     
+    .video-container {
+        max-width: 95vw;
+        margin: 10px auto;
+    }
+    
     .pose-img {
         position: static !important;
         width: 160px !important;
@@ -146,6 +181,7 @@
         display: block;
         right: auto !important;
         top: auto !important;
+        transform: none !important;
     }
     
     #webcam,
@@ -153,7 +189,7 @@
         width: 90vw !important;
         max-width: 90vw !important;
         height: auto !important;
-        margin: 10px auto !important;
+        margin: 0 auto !important;
         display: block !important;
     }
     
@@ -197,6 +233,60 @@
     .starting-contdown h1 {
         font-size: 1.8rem;
     }
+}
+
+/* Achievements Popup */
+.achievements-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.achievements-popup-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 2px solid #FFD700;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.achievements-popup-content h2 {
+    text-align: center;
+    color: #FFD700;
+    margin-bottom: 20px;
+    font-size: 2rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.close-achievements-btn {
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 30px;
+    background: #FFD700;
+    color: #333;
+    border: none;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.close-achievements-btn:hover {
+    background: #FFA500;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
 }
 
 /* Loading Spinner Animation */
