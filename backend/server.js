@@ -22,8 +22,23 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS configuration
+const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'http://localhost:3000',
+    'http://localhost:3001',
+].filter(Boolean);
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or Postman)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 
@@ -44,12 +59,28 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/progress', progressRoutes);
 
+// Root endpoint
+app.get('/', (req, res) => {
+    res.json({
+        message: 'Yoga Pose Detection API',
+        version: '1.0.0',
+        endpoints: {
+            health: '/api/health',
+            auth: '/api/auth',
+            user: '/api/user',
+            progress: '/api/progress'
+        }
+    });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'OK',
         message: 'Yoga API Server is running',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV,
+        database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
     });
 });
 
