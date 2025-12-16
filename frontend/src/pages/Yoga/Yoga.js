@@ -771,7 +771,7 @@ function Yoga() {
         {/* Processing indicator - show loading state */}
         <div style={{ textAlign: 'center', color: 'white', fontSize: '14px', margin: '5px 0', pointerEvents: 'none' }}>
           <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block', marginRight: 8 }}>⏳</span>
-          {isLoading ? 'Server Processing...' : 'AI Processing...'}
+          <span>{isLoading ? 'Server Processing...' : 'AI Processing...'}</span>
         </div>
 
         <div style={{ textAlign: 'center', color: 'white', margin: '10px 0', fontSize: '16px', fontWeight: 'bold' }}>

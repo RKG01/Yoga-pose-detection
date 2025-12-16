@@ -215,6 +215,55 @@ export const AuthProvider = ({ children }) => {
   };
 
   // =========================
+  // Progress functions
+  // =========================
+  const getStats = async () => {
+    try {
+      const response = await apiCall('/progress/stats');
+      return response.success ? response.stats : null;
+    } catch (error) {
+      console.error('Get stats error:', error);
+      return null;
+    }
+  };
+
+  const addSession = async (sessionData) => {
+    try {
+      const response = await apiCall('/progress/session', {
+        method: 'POST',
+        body: JSON.stringify(sessionData),
+      });
+      return response.success ? response.progress : null;
+    } catch (error) {
+      console.error('Add session error:', error);
+      return null;
+    }
+  };
+
+  const addAchievement = async (achievementData) => {
+    try {
+      const response = await apiCall('/progress/achievement', {
+        method: 'POST',
+        body: JSON.stringify(achievementData),
+      });
+      return response.success ? { isNew: response.isNew, progress: response.progress } : null;
+    } catch (error) {
+      console.error('Add achievement error:', error);
+      return null;
+    }
+  };
+
+  const getProgress = async () => {
+    try {
+      const response = await apiCall('/progress');
+      return response.success ? response.progress : null;
+    } catch (error) {
+      console.error('Get progress error:', error);
+      return null;
+    }
+  };
+
+  // =========================
   // Context value
   // =========================
   return (
@@ -232,6 +281,10 @@ export const AuthProvider = ({ children }) => {
         logout,
         apiCall,
         checkApiHealth,
+        getStats,
+        addSession,
+        addAchievement,
+        getProgress,
       }}
     >
       {children}
