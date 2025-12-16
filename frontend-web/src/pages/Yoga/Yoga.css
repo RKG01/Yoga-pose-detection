@@ -1,0 +1,309 @@
+/* Container */
+.yoga-container {
+    background: linear-gradient(135deg, #6a11cb, #2575fc); /* soft purple-blue gradient */
+    min-width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+    padding-top: 50px;
+    font-family: 'Raleway', sans-serif;
+    overflow-x: hidden;
+    color: #fff;
+}
+
+/* Secondary Buttons */
+.secondary-btn {
+    position: relative;
+    left: 0;
+    padding: 12px 28px;
+    border-radius: 25px;
+    border: 2px solid rgba(255,255,255,0.4);
+    background-color: rgba(255,255,255,0.1);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 15px;
+    z-index: 10;
+}
+
+.secondary-btn:hover {
+    background-color: rgba(255,255,255,0.25);
+    box-shadow: 0px 8px 20px rgba(0,0,0,0.2);
+    z-index: 11;
+}
+
+/* Countdown Circle */
+.starting-contdown {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 40px auto;
+    border: 8px solid rgba(255,255,255,0.3);
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background-color: rgba(255,255,255,0.05);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    animation: pulse 2s infinite;
+}
+
+.starting-contdown h1 {
+    color: #fff;
+    font-size: 2rem;
+    text-align: center;
+}
+
+/* Pulse Animation for Countdown */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Pose Image */
+.pose-img {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 280px;
+    aspect-ratio: 1;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    transition: transform 0.5s ease, box-shadow 0.5s ease;
+    z-index: 0; /* ensure canvas and controls remain above */
+    pointer-events: none; /* prevent blocking clicks on underlying elements */
+}
+
+.pose-img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.5);
+}
+
+/* Performance Container */
+.performance-container {
+    display: flex;
+    gap: 15px;
+    position: absolute;
+    bottom: 30px;
+    left: 20px;
+    flex-wrap: wrap;
+    max-width: calc(100vw - 320px);
+}
+
+/* Individual Pose Performance Card */
+.pose-performance {
+    background-color: rgba(255,255,255,0.1);
+    padding: 8px 15px;
+    border-radius: 12px;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease;
+    min-width: 100px;
+    text-align: center;
+}
+
+.pose-performance h4 {
+    color: #fff;
+    font-weight: 600;
+}
+
+.pose-performance:hover {
+    transform: translateY(-3px);
+}
+
+/* Video Container */
+.video-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    max-width: calc(100vw - 320px); /* Leave space for pose image */
+}
+
+/* Webcam & Canvas Flip */
+#webcam,
+#my-canvas {
+    transform: rotateY(180deg);
+    border-radius: 15px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Smooth responsive adjustments */
+@media (max-width: 1200px) {
+    .pose-img { 
+        width: 240px; 
+        right: 15px; 
+    }
+    .video-container {
+        max-width: calc(100vw - 260px);
+    }
+}
+
+@media (max-width: 900px) {
+    .performance-container { flex-direction: column; left: 20px; bottom: 20px; }
+    .pose-img { 
+        position: relative !important; 
+        margin: 20px auto; 
+        width: 200px !important; 
+        top: auto !important; 
+        right: auto !important; 
+        transform: none !important;
+        display: block;
+    }
+    .video-container {
+        max-width: 95vw;
+    }
+    .starting-contdown { width: 120px; height: 120px; }
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+    .yoga-container {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .video-container {
+        max-width: 95vw;
+        margin: 10px auto;
+    }
+    
+    .pose-img {
+        position: static !important;
+        width: 160px !important;
+        margin: 10px auto !important;
+        display: block;
+        right: auto !important;
+        top: auto !important;
+        transform: none !important;
+    }
+    
+    #webcam,
+    #my-canvas {
+        width: 90vw !important;
+        max-width: 90vw !important;
+        height: auto !important;
+        margin: 0 auto !important;
+        display: block !important;
+    }
+    
+    .secondary-btn {
+        padding: 10px 20px;
+        margin: 10px 8px;
+        font-size: 14px;
+        display: inline-block;
+    }
+    
+    .performance-container {
+        position: static !important;
+        flex-direction: row;
+        gap: 10px;
+        left: auto !important;
+        bottom: auto !important;
+        width: 100%;
+        justify-content: center;
+        margin: 15px auto;
+        padding: 0;
+        max-width: 100%;
+        flex-wrap: wrap;
+    }
+    
+    .pose-performance {
+        padding: 6px 10px;
+        font-size: 12px;
+        text-align: center;
+        min-width: 80px;
+        flex: 1;
+        max-width: 120px;
+    }
+    
+    .pose-performance h4 {
+        font-size: 15px;
+        margin: 5px 0;
+    }
+    
+    .starting-contdown {
+        width: 100px;
+        height: 100px;
+        margin: 20px auto;
+        border-width: 6px;
+    }
+    
+    .starting-contdown h1 {
+        font-size: 1.8rem;
+    }
+}
+
+/* Achievements Popup */
+.achievements-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.achievements-popup-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 2px solid #FFD700;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.achievements-popup-content h2 {
+    text-align: center;
+    color: #FFD700;
+    margin-bottom: 20px;
+    font-size: 2rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.close-achievements-btn {
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 30px;
+    background: #FFD700;
+    color: #333;
+    border: none;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.close-achievements-btn:hover {
+    background: #FFA500;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+}
+
+/* Loading Spinner Animation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

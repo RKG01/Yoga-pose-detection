@@ -1,7 +1,7 @@
 .progress-container {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 20px;
+    min-height: calc(100vh - 40px);
+    padding: 30px 20px;
     color: white;
     font-family: 'Raleway', sans-serif;
 }
@@ -126,29 +126,71 @@
 }
 
 @media (max-width: 768px) {
-    .progress-container {
-        padding: 15px;
-    }
+  .progress-container {
+    padding: 15px 10px;
+  }
 
-    .progress-container h1 {
-        font-size: 2rem;
-    }
+  .progress-container h1 {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+  }
 
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-    }
+  .welcome-message {
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+  }
 
-    .stat-card {
-        padding: 20px 15px;
-    }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
 
-    .stat-card h3 {
-        font-size: 2rem;
-    }
-}
+  .stat-card {
+    padding: 15px 10px;
+  }
 
-/* Pose Statistics Section */
+  .stat-card h3 {
+    font-size: 1.8rem;
+  }
+
+  .stat-card p {
+    font-size: 0.9rem;
+  }
+
+  .best-scores {
+    padding: 20px 15px;
+  }
+
+  .best-scores h2 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+  }
+
+  .score-item {
+    font-size: 0.95rem;
+    padding: 12px 0;
+  }
+
+  .pose-stats-section {
+    padding: 20px 10px;
+  }
+
+  .pose-stats-grid {
+    gap: 10px;
+  }
+
+  .pose-stat-card {
+    padding: 15px;
+  }
+
+  .achievements-section {
+    padding: 20px 10px;
+  }
+
+  .favorites-section {
+    padding: 20px 10px;
+  }
+}/* Pose Statistics Section */
 .pose-stats-section {
     max-width: 1200px;
     margin: 40px auto;
@@ -319,4 +361,63 @@
     to {
         transform: rotate(360deg);
     }
+}
+
+@media (max-width: 480px) {
+  .progress-container {
+    padding: 10px 8px;
+  }
+
+  .progress-container h1 {
+    font-size: 1.5rem;
+  }
+
+  .welcome-message {
+    font-size: 0.85rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .stat-card {
+    padding: 12px 8px;
+  }
+
+  .stat-card h3 {
+    font-size: 1.5rem;
+  }
+
+  .stat-card p {
+    font-size: 0.8rem;
+  }
+
+  .pose-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pose-stat-card h4 {
+    font-size: 1rem;
+  }
+
+  .pose-details {
+    font-size: 0.85rem;
+  }
+
+  .best-scores h2,
+  .achievements-section h2,
+  .favorites-section h2 {
+    font-size: 1.3rem;
+  }
+
+  .achievement-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .achievement-icon {
+    font-size: 2.5rem;
+  }
 }

@@ -1,0 +1,267 @@
+.settings-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: white;
+    font-family: 'Raleway', sans-serif;
+}
+
+.settings-container h1 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 40px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.settings-sections {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.settings-section {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.settings-section h2 {
+    margin: 0 0 20px 0;
+    font-size: 1.3rem;
+    color: #FFD700;
+}
+
+.setting-item {
+    margin-bottom: 20px;
+}
+
+.setting-item:last-child {
+    margin-bottom: 0;
+}
+
+.setting-item label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+/* Theme Toggle */
+.theme-toggle {
+    display: flex;
+    gap: 10px;
+}
+
+.theme-toggle button {
+    flex: 1;
+    padding: 12px 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.theme-toggle button.active,
+.theme-toggle button:hover {
+    background: #FFD700;
+    color: #333;
+    border-color: #FFD700;
+}
+
+/* Difficulty Selector */
+.difficulty-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.difficulty-option {
+    padding: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.difficulty-option:hover {
+    border-color: rgba(255, 215, 0, 0.6);
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.difficulty-option.selected {
+    border-color: #FFD700;
+    background: rgba(255, 215, 0, 0.2);
+}
+
+.difficulty-option h4 {
+    margin: 0 0 8px 0;
+    color: #FFD700;
+    font-size: 1.1rem;
+}
+
+.difficulty-option p {
+    margin: 0 0 10px 0;
+    opacity: 0.9;
+    font-size: 0.9rem;
+}
+
+.difficulty-stats {
+    display: flex;
+    gap: 15px;
+}
+
+.difficulty-stats span {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.3);
+    transition: 0.4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #FFD700;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* Range Slider */
+.slider-input {
+    width: 100%;
+    height: 8px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.3);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.slider-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #FFD700;
+    cursor: pointer;
+}
+
+.slider-input::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #FFD700;
+    cursor: pointer;
+    border: none;
+}
+
+/* Danger Button */
+.danger-btn {
+    background: rgba(244, 67, 54, 0.8);
+    color: white;
+    border: 2px solid rgba(244, 67, 54, 0.8);
+    padding: 12px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.danger-btn:hover {
+    background: rgba(244, 67, 54, 1);
+    transform: translateY(-2px);
+}
+
+/* Light Theme Styles */
+body.light-theme .settings-container {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    color: #333;
+}
+
+body.light-theme .settings-section {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .theme-toggle button {
+    color: #333;
+    border-color: rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+body.light-theme .difficulty-option {
+    border-color: rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 768px) {
+    .settings-container {
+        padding: 15px;
+    }
+    
+    .settings-container h1 {
+        font-size: 2rem;
+    }
+    
+    .settings-section {
+        padding: 20px;
+    }
+    
+    .theme-toggle {
+        flex-direction: column;
+    }
+    
+    .difficulty-selector {
+        gap: 10px;
+    }
+    
+    .difficulty-option {
+        padding: 15px;
+    }
+}

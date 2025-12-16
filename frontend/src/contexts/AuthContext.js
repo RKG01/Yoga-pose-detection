@@ -1,6 +1,13 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { CapacitorHttp } from '@capacitor/core';
 
 const AuthContext = createContext();
+
+// Check if running in Capacitor (native app)
+const isNative = () =>
+  window.Capacitor &&
+  window.Capacitor.isNativePlatform &&
+  window.Capacitor.isNativePlatform();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -15,141 +22,134 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('yogaToken'));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [apiStatus, setApiStatus] = useState('checking'); // 'checking', 'production', 'local', 'offline'
+  const [apiStatus, setApiStatus] = useState('checking'); // checking | production | local | offline
 
-  const PRODUCTION_API_URL = process.env.REACT_APP_API_URL || 'https://yoga-pose-detection-1.onrender.com/api';
-  const LOCAL_API_URL = process.env.REACT_APP_LOCAL_API_URL || 'http://localhost:5000/api';
-  
+  const PRODUCTION_API_URL =
+    process.env.REACT_APP_API_URL ||
+    'https://yoga-pose-detection-1.onrender.com/api';
+
+  const LOCAL_API_URL =
+    process.env.REACT_APP_LOCAL_API_URL ||
+    'http://localhost:5000/api';
+
   const [currentApiUrl, setCurrentApiUrl] = useState(PRODUCTION_API_URL);
 
-  // Check API health
+  // =========================
+  // API health check
+  // =========================
   const checkApiHealth = useCallback(async () => {
-    try {
-      setApiStatus('checking');
-      
-      // Try production first
-      try {
-        const response = await fetch(`${PRODUCTION_API_URL}/health`, { 
-          method: 'GET',
-          timeout: 5000 
-        });
-        if (response.ok) {
-          setCurrentApiUrl(PRODUCTION_API_URL);
-          setApiStatus('production');
-          return 'production';
-        }
-      } catch (prodError) {
-        console.warn('Production API health check failed:', prodError.message);
-      }
+    setApiStatus('checking');
 
-      // Try local if production fails
-      try {
-        const response = await fetch(`${LOCAL_API_URL}/health`, { 
-          method: 'GET',
-          timeout: 3000 
-        });
-        if (response.ok) {
-          setCurrentApiUrl(LOCAL_API_URL);
-          setApiStatus('local');
-          return 'local';
-        }
-      } catch (localError) {
-        console.warn('Local API health check failed:', localError.message);
-      }
+    const tryHealth = async (baseUrl, timeoutMs) => {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), timeoutMs);
 
-      // Both failed
-      setApiStatus('offline');
-      return 'offline';
-    } catch (error) {
-      console.error('API health check error:', error);
-      setApiStatus('offline');
-      return 'offline';
-    }
-  }, [PRODUCTION_API_URL, LOCAL_API_URL]);
+      const res = await fetch(`${baseUrl}/health`, {
+        method: 'GET',
+        signal: controller.signal,
+      });
 
-  // API call helper with fallback
-  const apiCall = useCallback(async (endpoint, options = {}) => {
-    const tryApiCall = async (baseUrl) => {
-      const url = `${baseUrl}${endpoint}`;
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { Authorization: `Bearer ${token}` }),
-          ...options.headers,
-        },
-        ...options,
-      };
-
-      const response = await fetch(url, config);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Something went wrong');
-      }
-
-      return data;
+      if (!res.ok) throw new Error('Health check failed');
     };
 
     try {
-      // Try production API first
-      const result = await tryApiCall(currentApiUrl);
-      return result;
-    } catch (error) {
-      console.warn(`API call failed with ${currentApiUrl}:`, error.message);
-      
-      // If production fails and we're not already using local, try local
-      if (currentApiUrl !== LOCAL_API_URL) {
-        try {
-          console.log('Falling back to local API...');
-          setCurrentApiUrl(LOCAL_API_URL);
-          const result = await tryApiCall(LOCAL_API_URL);
-          return result;
-        } catch (localError) {
-          console.error('Local API also failed:', localError.message);
-          // Switch back to production for next attempt
-          setCurrentApiUrl(PRODUCTION_API_URL);
-          throw new Error(`Both production and local APIs failed. Production: ${error.message}, Local: ${localError.message}`);
-        }
-      } else {
-        // If local fails, try production
-        try {
-          console.log('Local API failed, trying production...');
-          setCurrentApiUrl(PRODUCTION_API_URL);
-          const result = await tryApiCall(PRODUCTION_API_URL);
-          return result;
-        } catch (prodError) {
-          console.error('Production API also failed:', prodError.message);
-          throw new Error(`Both APIs failed. Local: ${error.message}, Production: ${prodError.message}`);
-        }
+      await tryHealth(PRODUCTION_API_URL, 6000);
+      setCurrentApiUrl(PRODUCTION_API_URL);
+      setApiStatus('production');
+      return 'production';
+    } catch {
+      try {
+        await tryHealth(LOCAL_API_URL, 3000);
+        setCurrentApiUrl(LOCAL_API_URL);
+        setApiStatus('local');
+        return 'local';
+      } catch {
+        setApiStatus('offline');
+        return 'offline';
       }
     }
-  }, [token, currentApiUrl, PRODUCTION_API_URL, LOCAL_API_URL]);
+  }, [PRODUCTION_API_URL, LOCAL_API_URL]);
 
-  // Check API health and verify token on app load
+  // =========================
+  // API helper (native + web)
+  // =========================
+  const apiCall = useCallback(
+    async (endpoint, options = {}, retries = 2) => {
+      const url = `${currentApiUrl}${endpoint}`;
+
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...options.headers,
+      };
+
+      try {
+        if (isNative()) {
+          const res = await CapacitorHttp.request({
+            url,
+            method: options.method || 'GET',
+            headers,
+            data: options.body ? JSON.parse(options.body) : undefined,
+            readTimeout: 60000,
+            connectTimeout: 60000,
+          });
+
+          if (res.status >= 400) {
+            throw new Error(res.data?.message || 'Request failed');
+          }
+
+          return res.data;
+        }
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 60000);
+
+        const res = await fetch(url, {
+          method: options.method || 'GET',
+          headers,
+          body: options.body,
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Request failed');
+
+        return data;
+      } catch (err) {
+        if (
+          retries > 0 &&
+          (err.name === 'AbortError' ||
+            err.message.includes('fetch') ||
+            err.message.includes('network'))
+        ) {
+          await new Promise(r => setTimeout(r, 2000));
+          return apiCall(endpoint, options, retries - 1);
+        }
+        throw err;
+      }
+    },
+    [token, currentApiUrl]
+  );
+
+  // =========================
+  // App initialization
+  // =========================
   useEffect(() => {
-    const initializeApp = async () => {
-      // First check API health
+    const init = async () => {
       await checkApiHealth();
-      
+
       if (!token) {
         setLoading(false);
         return;
       }
 
       try {
-        const response = await apiCall('/auth/verify-token', {
-          method: 'POST',
-        });
-
-        if (response.success) {
-          setUser(response.user);
-        } else {
-          // Invalid token
-          localStorage.removeItem('yogaToken');
-          setToken(null);
-        }
-      } catch (error) {
-        console.error('Token verification failed:', error);
+        const res = await apiCall('/auth/verify-token', { method: 'POST' });
+        if (res.success) setUser(res.user);
+        else throw new Error('Invalid token');
+      } catch {
         localStorage.removeItem('yogaToken');
         setToken(null);
       } finally {
@@ -157,188 +157,83 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    initializeApp();
+    init();
   }, [token, apiCall, checkApiHealth]);
 
-  // Login function
-  const login = async (loginData) => {
+  // =========================
+  // Auth actions
+  // =========================
+  const login = async (data) => {
     try {
-      setError('');
       setLoading(true);
+      setError('Waking up server…');
 
-      const response = await apiCall('/auth/login', {
+      await fetch(`${currentApiUrl}/health`).catch(() => {});
+
+      const res = await apiCall('/auth/login', {
         method: 'POST',
-        body: JSON.stringify(loginData),
+        body: JSON.stringify(data),
       });
 
-      if (response.success) {
-        const { token: newToken, user: userData } = response;
-        
-        localStorage.setItem('yogaToken', newToken);
-        setToken(newToken);
-        setUser(userData);
-        
-        return { success: true, message: response.message };
-      }
-    } catch (error) {
-      let errorMessage = error.message;
-      
-      if (error.message.includes('fetch') || error.message.includes('NetworkError')) {
-        errorMessage = `Cannot connect to server. Current API: ${currentApiUrl === PRODUCTION_API_URL ? 'Production (Render)' : 'Local'}. ${error.message}`;
-      } else if (error.message.includes('Both APIs failed')) {
-        errorMessage = 'Both production and local servers are unavailable. Please try again later.';
-      }
-      
-      setError(errorMessage);
-      return { success: false, message: errorMessage };
+      localStorage.setItem('yogaToken', res.token);
+      setToken(res.token);
+      setUser(res.user);
+      setError('');
+      return { success: true };
+    } catch (err) {
+      setError('Unable to connect to server. Please try again.');
+      return { success: false };
     } finally {
       setLoading(false);
     }
   };
 
-  // Register function
-  const register = async (registerData) => {
+  const register = async (data) => {
     try {
-      setError('');
       setLoading(true);
-
-      const response = await apiCall('/auth/register', {
+      const res = await apiCall('/auth/register', {
         method: 'POST',
-        body: JSON.stringify(registerData),
+        body: JSON.stringify(data),
       });
 
-      if (response.success) {
-        const { token: newToken, user: userData } = response;
-        
-        localStorage.setItem('yogaToken', newToken);
-        setToken(newToken);
-        setUser(userData);
-        
-        return { success: true, message: response.message };
-      }
-    } catch (error) {
-      setError(error.message);
-      return { success: false, message: error.message };
+      localStorage.setItem('yogaToken', res.token);
+      setToken(res.token);
+      setUser(res.user);
+      return { success: true };
+    } catch (err) {
+      setError(err.message);
+      return { success: false };
     } finally {
       setLoading(false);
     }
   };
 
-  // Logout function
   const logout = () => {
     localStorage.removeItem('yogaToken');
-    setToken(null);
     setUser(null);
-    setError('');
+    setToken(null);
   };
 
-  // Update user profile
-  const updateProfile = async (profileData) => {
-    try {
-      const response = await apiCall('/user/profile', {
-        method: 'PUT',
-        body: JSON.stringify(profileData),
-      });
-
-      if (response.success) {
-        setUser(response.user);
-        return { success: true, message: response.message };
-      }
-    } catch (error) {
-      return { success: false, message: error.message };
-    }
-  };
-
-  // Update user preferences
-  const updatePreferences = async (preferences) => {
-    try {
-      const response = await apiCall('/user/preferences', {
-        method: 'PUT',
-        body: JSON.stringify(preferences),
-      });
-
-      if (response.success) {
-        setUser(prev => ({
-          ...prev,
-          preferences: response.preferences
-        }));
-        return { success: true, message: response.message };
-      }
-    } catch (error) {
-      return { success: false, message: error.message };
-    }
-  };
-
-  // Progress API calls
-  const getProgress = async () => {
-    try {
-      const response = await apiCall('/progress');
-      return response.success ? response.progress : null;
-    } catch (error) {
-      console.error('Get progress error:', error);
-      return null;
-    }
-  };
-
-  const addSession = async (sessionData) => {
-    try {
-      const response = await apiCall('/progress/session', {
-        method: 'POST',
-        body: JSON.stringify(sessionData),
-      });
-      return response.success ? response.progress : null;
-    } catch (error) {
-      console.error('Add session error:', error);
-      return null;
-    }
-  };
-
-  const addAchievement = async (achievementData) => {
-    try {
-      const response = await apiCall('/progress/achievement', {
-        method: 'POST',
-        body: JSON.stringify(achievementData),
-      });
-      return response.success ? { isNew: response.isNew, progress: response.progress } : null;
-    } catch (error) {
-      console.error('Add achievement error:', error);
-      return null;
-    }
-  };
-
-  const getStats = async () => {
-    try {
-      const response = await apiCall('/progress/stats');
-      return response.success ? response.stats : null;
-    } catch (error) {
-      console.error('Get stats error:', error);
-      return null;
-    }
-  };
-
-  const value = {
-    user,
-    token,
-    loading,
-    error,
-    isAuthenticated: !!user,
-    apiStatus,
-    currentApiUrl,
-    checkApiHealth,
-    login,
-    register,
-    logout,
-    updateProfile,
-    updatePreferences,
-    getProgress,
-    addSession,
-    addAchievement,
-    getStats,
-    apiCall,
-  };
-
+  // =========================
+  // Context value
+  // =========================
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        loading,
+        error,
+        apiStatus,
+        currentApiUrl,
+        isAuthenticated: !!user,
+        login,
+        register,
+        logout,
+        apiCall,
+        checkApiHealth,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,6 +1,6 @@
 .tutorials-container {
     width: 100%;
-    min-height: 100vh;
+    min-height: calc(100vh - 40px);
     background-color: #121212; /* Dark background */
     color: #e0e0e0;
     padding: 50px 20px;

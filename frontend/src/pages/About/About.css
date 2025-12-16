@@ -1,6 +1,6 @@
 .about-container {
     width: 100%;
-    min-height: 100vh;
+    min-height: calc(100vh - 40px);
     background-color: #f4f7f6; /* A soft, calming off-white/grey */
     padding: 40px 20px;
     box-sizing: border-box;

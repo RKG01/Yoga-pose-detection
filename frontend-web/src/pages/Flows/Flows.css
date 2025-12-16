@@ -1,0 +1,160 @@
+.flows-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: white;
+    font-family: 'Raleway', sans-serif;
+}
+
+.flows-container h1 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.flows-container > p {
+    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: 40px;
+    opacity: 0.9;
+}
+
+.flows-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.flow-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.flow-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+}
+
+.flow-card h3 {
+    font-size: 1.5rem;
+    margin: 0 0 15px 0;
+    color: #FFD700;
+    font-weight: 600;
+}
+
+.flow-info {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.difficulty {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.difficulty.beginner {
+    background: rgba(76, 175, 80, 0.8);
+    color: white;
+}
+
+.difficulty.intermediate {
+    background: rgba(255, 152, 0, 0.8);
+    color: white;
+}
+
+.difficulty.advanced {
+    background: rgba(244, 67, 54, 0.8);
+    color: white;
+}
+
+.duration {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.flow-card p {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    opacity: 0.9;
+}
+
+.poses-preview {
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+.pose-chip {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.start-flow-btn {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    color: #333;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.start-flow-btn:hover {
+    background: linear-gradient(45deg, #FFA500, #FFD700);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+    color: #333;
+    text-decoration: none;
+}
+
+@media (max-width: 768px) {
+    .flows-container {
+        padding: 15px;
+    }
+    
+    .flows-container h1 {
+        font-size: 2rem;
+    }
+    
+    .flows-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .flow-card {
+        padding: 25px 20px;
+    }
+    
+    .flow-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
