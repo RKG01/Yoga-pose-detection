@@ -4,7 +4,7 @@ Complete setup guide for the Yoga Pose Detection app with MongoDB authentication
 
 ## 📋 Prerequisites
 
-- **Node.js** (v14 or higher)
+- **Node.js** 
 - **MongoDB** (local installation or MongoDB Atlas)
 - **Git**
 
